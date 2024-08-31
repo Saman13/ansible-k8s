@@ -29,6 +29,8 @@ kube_apiserver_version: 1.30.0
 kube_apiserver_extract_dir: /opt
 
 kube_controller_manager_version: 1.30.0
+kube_controller_manager_extract_dir: /opt
+
 kube_scheduler_version: 1.30.0
 kube_proxy_version: 1.30.0
 kubelet_version: 1.30.0

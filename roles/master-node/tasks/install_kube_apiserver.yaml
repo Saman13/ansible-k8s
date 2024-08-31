@@ -61,20 +61,6 @@
       state: link
     become: yes
 
-
-
-
-
-
-
-
-  #- name: Install kube-apiserver
-  #  ansible.builtin.get_url:
-  #    url: https://dl.k8s.io/v{{ kube_apiserver_version }}/bin/linux/amd64/kube-apiserver
-  #    dest: /usr/local/bin
-  #    mode: u+x
-  #  become: yes
-
   - name: Install service kube-apiserver
     ansible.builtin.template:
       src: kube-apiserver.service.j2
