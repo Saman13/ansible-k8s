@@ -1,0 +1,15 @@
+---
+
+- name: admin-node
+  hosts:
+    - admin
+  roles:
+    - admin-node
+  tags: admin-node
+
+- name: master-node
+  hosts:
+    - master
+  roles:
+    - master-node
+  tags: master-node

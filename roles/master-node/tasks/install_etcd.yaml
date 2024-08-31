@@ -1,0 +1,79 @@
+---
+
+- name: Create etcd config directory
+  ansible.builtin.file:
+    path: /etc/etcd
+    state: directory
+  become: yes
+
+- name: Create etcd data directory
+  ansible.builtin.file:
+    path: /var/lib/etcd
+    state: directory
+    mode: 0700
+  become: yes
+
+- name: Copy certificates for etcd
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ etcd_conf_dir }}"
+  with_fileglob:
+    - "{{ local_cert_dir }}/ca.*"
+    - "{{ local_cert_dir }}/kube-api-server.*"
+  become: yes
+
+
+- name: Is etcd installed
+  ansible.builtin.stat:
+    path: "{{ etcd_extract_dir }}/etcd-v{{ etcd_version }}-linux-amd64"
+  register: etcd_dir
+
+- block:
+
+  - name: Extract etcd
+    ansible.builtin.unarchive:
+      src: https://github.com/etcd-io/etcd/releases/download/v{{ etcd_version }}/etcd-v{{ etcd_version }}-linux-amd64.tar.gz
+      dest: /opt
+      remote_src: yes
+    become: yes
+
+  - name: Create symlinks to /usr/local/bin
+    ansible.builtin.file:
+      src: "{{ etcd_extract_dir }}/etcd-v{{ etcd_version }}-linux-amd64/{{ item }}"
+      path: "/usr/local/bin/{{ item | basename }}"
+      state: link
+    with_items:
+      - etcd
+      - etcdctl
+    become: yes
+
+#- name: Install etcd
+#  ansible.builtin.unarchive:
+#    src: https://github.com/etcd-io/etcd/releases/download/v{{ etcd_version }}/etcd-v{{ etcd_version }}-linux-amd64.tar.gz
+#    dest: /usr/local/bin
+#    remote_src: yes
+#    include:
+#      - etcd-v{{ etcd_version }}-linux-amd64/etcd
+#      - etcd-v{{ etcd_version }}-linux-amd64/etcdctl
+#    extra_opts:
+#      - --strip-components=1
+#  become: yes
+
+  - name: Install service etcd
+    ansible.builtin.template:
+      src: etcd.service.j2
+      dest: /etc/systemd/system/etcd.service
+      mode: 0644
+    notify:
+      - reload systemd
+    become: yes
+
+  - name: Enable and start etcd service
+    ansible.builtin.systemd:
+      name: etcd
+      state: started
+      enabled: yes
+    become: yes
+
+  when:
+    - not etcd_dir.stat.exists

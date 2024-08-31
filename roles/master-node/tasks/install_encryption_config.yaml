@@ -1,0 +1,11 @@
+---
+
+- name: Generate an encryption key
+  set_fact:
+    encryption_key: "{{ lookup('community.general.random_string', '0-9a-zA-Z', 32) | b64encode }}"
+
+- name: Create the encryption config file
+  ansible.builtin.template:
+    src: encryption-config.yaml.j2
+    dest: "{{ kubernetes_dir }}/encryption-config.yaml"
+  become: yes

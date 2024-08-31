@@ -1,0 +1,144 @@
+---
+
+- name: Create config directory
+  ansible.builtin.file:
+    path: "{{ conf_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Ganerate config admin (set cluster)
+  ansible.builtin.command: >
+    kubectl config set-cluster k8s
+    --certificate-authority=cert/ca.crt
+    --embed-certs=true
+    --server=https://127.0.0.1:6443
+    --kubeconfig=.kube/admin.kubeconfig
+  become: yes
+
+- name: Ganerate config admin (set credentials)
+  ansible.builtin.command: >
+    kubectl config set-credentials admin
+    --client-certificate=cert/admin.crt
+    --client-key=cert/admin.key
+    --embed-certs=true
+    --kubeconfig=.kube/admin.kubeconfig
+  become: yes
+
+- name: Ganerate config admin (set context)
+  ansible.builtin.command: >
+    kubectl config set-context default
+    --cluster=k8s
+    --user=admin
+    --kubeconfig=.kube/admin.kubeconfig
+  become: yes
+
+- name: Set default context for admin config
+  ansible.builtin.command: >
+    kubectl config use-context default
+    --kubeconfig=.kube/admin.kubeconfig
+  become: yes
+
+- name: Copy the config local conf directory
+  ansible.builtin.fetch:
+    src: ".kube/admin.kubeconfig"
+    dest: "{{ local_conf_dir }}/admin.kubeconfig"
+    flat: true
+  become: yes
+
+
+- name: Ganerate config worker nodes (set cluster)
+  ansible.builtin.command: >
+    kubectl config set-cluster k8s
+    --certificate-authority=cert/ca.crt
+    --embed-certs=true
+    --server=https://{{ item }}.{{ domain_name }}:6443
+    --kubeconfig=.kube/{{ item }}.kubeconfig
+  with_items: "{{ groups.worker }}"
+
+- name: Ganerate config worker nodes (set credentials)
+  ansible.builtin.command: >
+    kubectl config set-credentials system:node:{{ item }}
+    --client-certificate=cert/{{ item }}.crt
+    --client-key=cert/{{ item }}.key
+    --embed-certs=true
+    --kubeconfig=.kube/{{ item }}.kubeconfig
+  with_items: "{{ groups.worker }}"
+
+- name: Ganerate config worker nodes (set context)
+  ansible.builtin.command: >
+    kubectl config set-context default
+    --cluster=k8s
+    --user=system:node:{{ item }}
+    --kubeconfig=.kube/{{ item }}.kubeconfig
+  with_items: "{{ groups.worker }}"
+
+- name: Set default context for worker nodes config
+  ansible.builtin.command: >
+    kubectl config use-context default
+    --kubeconfig=.kube/{{ item }}.kubeconfig
+  with_items: "{{ groups.worker }}"
+
+- name: Copy the config to local conf directory
+  ansible.builtin.fetch:
+    src: ".kube/{{ item }}.kubeconfig"
+    dest: "{{ local_conf_dir }}/{{ item }}.kubeconfig"
+    flat: true
+  with_items: "{{ groups.worker }}"
+
+
+
+- name: Ganerate config for services (set cluster)
+  ansible.builtin.command: >
+    kubectl config set-cluster k8s
+    --certificate-authority=cert/ca.crt
+    --embed-certs=true
+    --server=https://k8s-master.{{ domain_name }}:6443
+    --kubeconfig=.kube/{{ item }}.kubeconfig
+  with_items:
+    - kube-proxy
+    - kube-controller-manager
+    - kube-scheduler
+
+- name: Ganerate config for services (set credentials)
+  ansible.builtin.command: >
+    kubectl config set-credentials system:{{ item }}
+    --client-certificate=cert/{{ item }}.crt
+    --client-key=cert/{{ item }}.key
+    --embed-certs=true
+    --kubeconfig=.kube/{{ item }}.kubeconfig
+  with_items:
+    - kube-proxy
+    - kube-controller-manager
+    - kube-scheduler
+
+- name: Ganerate config for services (set context)
+  ansible.builtin.command: >
+    kubectl config set-context default
+    --cluster=k8s
+    --user=system:{{ item }}
+    --kubeconfig=.kube/{{ item }}.kubeconfig
+  with_items:
+    - kube-proxy
+    - kube-controller-manager
+    - kube-scheduler
+
+- name: Set default context for services config
+  ansible.builtin.command: >
+    kubectl config use-context default
+    --kubeconfig=.kube/{{ item }}.kubeconfig
+  with_items:
+    - kube-proxy
+    - kube-controller-manager
+    - kube-scheduler
+
+- name: Copy the config services to local conf directory
+  ansible.builtin.fetch:
+    src: ".kube/{{ item }}.kubeconfig"
+    dest: "{{ local_conf_dir }}/{{ item }}.kubeconfig"
+    flat: true
+  with_items:
+    - kube-proxy
+    - kube-controller-manager
+    - kube-scheduler
+
+

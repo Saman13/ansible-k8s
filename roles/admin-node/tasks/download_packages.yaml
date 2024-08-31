@@ -1,0 +1,66 @@
+---
+
+- name: Download kubectl
+  ansible.builtin.get_url:
+    url: https://dl.k8s.io/v{{ kubectl_version }}/bin/linux/amd64/kubectl
+    dest: "{{ local_binary_dir }}/kubectl"
+
+- name: Download kube-apiserver
+  ansible.builtin.get_url:
+    url: https://dl.k8s.io/v{{ kube_apiserver_version }}/bin/linux/amd64/kube-apiserver
+    dest: "{{ local_binary_dir }}/kube-apiserver"
+
+- name: Download kube-controller-manager
+  ansible.builtin.get_url:
+    url: https://dl.k8s.io/v{{ kube_controller_manager_version }}/bin/linux/amd64/kube-controller-manager
+    dest: "{{ local_binary_dir }}/kube-controller-manager"
+
+- name: Download kube-scheduler
+  ansible.builtin.get_url:
+    url: https://dl.k8s.io/v{{ kube_scheduler_version }}/bin/linux/amd64/kube-scheduler
+    dest: "{{ local_binary_dir }}/kube-scheduler"
+
+- name: Download kube-proxy
+  ansible.builtin.get_url:
+    url: https://dl.k8s.io/v{{ kube_proxy_version }}/bin/linux/amd64/kube-proxy
+    dest: "{{ local_binary_dir }}/kube-proxy"
+
+- name: Download kubelet
+  ansible.builtin.get_url:
+    url: https://dl.k8s.io/v{{ kubelet_version }}/bin/linux/amd64/kubelet
+    dest: "{{ local_binary_dir }}/kubelet"
+
+- name: Download crictl
+  ansible.builtin.get_url:
+    url: https://github.com/kubernetes-sigs/cri-tools/releases/download/v{{ crictl_version }}/crictl-v{{ crictl_version }}-linux-amd64.tar.gz
+    dest: "{{ local_binary_dir }}/crictl-v{{ crictl_version }}-linux-amd64.tar.gz"
+ 
+- name: Download runc
+  ansible.builtin.get_url:
+    url: https://github.com/opencontainers/runc/releases/download/v{{ runc_version }}/runc.amd64
+    dest: "{{ local_binary_dir }}/runc.amd64"
+
+- name: Download cni-plugins
+  ansible.builtin.get_url:
+    url: https://github.com/containernetworking/plugins/releases/download/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
+    dest: "{{ local_binary_dir }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
+
+- name: Download containerd
+  ansible.builtin.get_url:
+    url: https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz
+    dest: "{{ local_binary_dir }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+
+- name: Download etcd
+  ansible.builtin.get_url:
+    url: https://github.com/etcd-io/etcd/releases/download/v{{ etcd_version }}/etcd-v{{ etcd_version }}-linux-amd64.tar.gz
+    dest: "{{ local_binary_dir }}/etcd-v{{ etcd_version }}-linux-amd64.tar.gz"
+
+
+
+
+
+
+
+
+
+

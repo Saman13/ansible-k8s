@@ -1,0 +1,18 @@
+all:
+  children:
+    admin:
+      hosts:
+        k8s-admin:
+          ansible_host: 192.168.88.150
+    master:
+      hosts:
+        k8s-master:
+          ansible_host: 192.168.88.151
+    worker:
+      hosts:
+        k8s-worker0:
+          ansible_host: 192.168.88.152
+        k8s-worker1:
+          ansible_host: 192.168.88.153
+  vars:
+    domain_name: local

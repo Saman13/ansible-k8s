@@ -1,0 +1,59 @@
+---
+
+- name: Generate private key
+  community.crypto.openssl_privatekey:
+    path: "{{ kubernetes_dir }}/kube-controller-manager.key"
+    size: "{{ key_size }}"
+    type: "{{ key_type }}"
+
+- name: Generate a certificate signing request with subject information
+  community.crypto.openssl_csr:
+    path: "{{ kubernetes_dir }}/kube-controller-manager.csr"
+    privatekey_path: "{{ kubernetes_dir }}/kube-controller-manager.key"
+    basic_constraints: "CA:FALSE"
+    extended_key_usage:
+      - clientAuth
+      - serverAuth
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+    country_name: "{{ country }}"
+    common_name: "system:kube-controller_manager"
+    organization_name: "system:kube-controller-manager"
+    state_or_province_name: "Russia"
+    locality_name: "Saint-Petersburg"
+    subject_alt_name: "IP:127.0.0.1,DNS:kube-proxy"
+    create_subject_key_identifier: yes
+
+- name: Generate a certificate
+  community.crypto.x509_certificate:
+    path: "{{ kubernetes_dir }}/kube-controller-manager.crt"
+    csr_path: "{{ kubernetes_dir }}/kube-controller-manager.csr"
+    ownca_path: "{{ kubernetes_dir }}/ca.crt"
+    ownca_privatekey_path: "{{ kubernetes_dir }}/ca.key"
+    provider: ownca
+
+- name: Install kube-controller-manager
+  ansible.builtin.get_url:
+    url: https://dl.k8s.io/v{{ kube_controller_manager_version }}/bin/linux/amd64/kube-controller-manager
+    dest: /usr/local/bin
+    mode: u+x
+  become: yes
+
+- name: Install service kube-controller-manager
+  ansible.builtin.template:
+    src: kube-controller-manager.service.j2
+    dest: /etc/systemd/system/kube-controller-manager.service
+    mode: 0644
+  notify:
+    - reload systemd
+  become: yes
+
+- name: Enable and start kube-controller-manager
+  ansible.builtin.systemd:
+    name: kube-controller-manager
+    state: started
+    enabled: yes
+  become: yes
+

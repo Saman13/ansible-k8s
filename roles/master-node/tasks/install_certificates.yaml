@@ -1,0 +1,14 @@
+---
+
+- name: Copy certificates
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ kubernetes_dir }}"
+  with_fileglob:
+    - "{{ local_cert_dir }}/ca.*"
+    - "{{ local_cert_dir }}/admin.*"
+    - "{{ local_cert_dir }}/kube-api-server.*"
+    - "{{ local_cert_dir }}/service-account.*"
+    - "{{ local_cert_dir }}/kube-controller-manager.*"
+    - "{{ local_cert_dir }}/kube-scheduler.*"
+  become: yes

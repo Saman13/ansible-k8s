@@ -1,0 +1,23 @@
+---
+
+- ansible.builtin.include_tasks:
+    file: setup_hosts.yaml
+
+- ansible.builtin.include_tasks:
+    file: preset.yaml
+
+- ansible.builtin.include_tasks:
+    file: generate_certificates.yaml
+
+- ansible.builtin.include_tasks:
+    file: install_kubectl.yaml
+
+- ansible.builtin.include_tasks:
+    file: generate_config.yaml
+
+
+
+
+
+
+

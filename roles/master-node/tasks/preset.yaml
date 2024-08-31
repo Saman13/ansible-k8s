@@ -1,0 +1,17 @@
+---
+
+- name: Install packages
+  ansible.builtin.package:
+    name:
+      - python3-cryptography
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: create kubernetes directory
+  ansible.builtin.file:
+    path: "{{ kubernetes_dir }}"
+    state: directory
+    mode: "0755"
+  become: yes
+
