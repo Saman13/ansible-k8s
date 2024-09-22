@@ -7,13 +7,34 @@
     file: preset.yaml
 
 - ansible.builtin.include_tasks:
-    file: generate_certificates.yaml
+    file: generate_cert_ca.yaml
+
+- ansible.builtin.include_tasks:
+    file: generate_cert_admin.yaml
+
+- ansible.builtin.include_tasks:
+    file: generate_cert_service_account.yaml
+
+- ansible.builtin.include_tasks:
+    file: generate_cert_kube_api_server.yaml
+
+- ansible.builtin.include_tasks:
+    file: generate_cert_kube_controller_manager.yaml
+
+- ansible.builtin.include_tasks:
+    file: generate_cert_kube_scheduler.yaml
+
+- ansible.builtin.include_tasks:
+    file: generate_cert_kube_proxy.yaml
+
+- ansible.builtin.include_tasks:
+    file: generate_cert_worker.yaml
 
 - ansible.builtin.include_tasks:
     file: install_kubectl.yaml
 
 - ansible.builtin.include_tasks:
-    file: generate_config.yaml
+    file: generate_kubeconfig_admin.yaml
 
 
 

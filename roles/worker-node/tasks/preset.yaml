@@ -1,0 +1,41 @@
+---
+
+- name: Install packages
+  ansible.builtin.package:
+    name:
+      - socat
+      - conntrack
+      - ipset
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: create cert directory
+  ansible.builtin.file:
+    path: "{{ cert_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: create kubernetes directory
+  ansible.builtin.file:
+    path: "{{ kubernetes_dir }}"
+    state: directory
+    mode: "0755"
+  become: yes
+
+- name: Disable swap in current session
+  ansible.builtin.command: >
+    swapoff -a
+  become: yes
+
+- name: Disable swap after reboot
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    replace: '# \1'
+  become: yes
+
+- name: Generate numbers for subnet
+  set_fact:
+    server_index: "{{ ansible_play_batch.index(inventory_hostname) }}"
+

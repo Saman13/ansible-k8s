@@ -1,0 +1,47 @@
+---
+
+- name: Generate private key for component
+  community.crypto.openssl_privatekey:
+    path: "{{ cert_dir }}/kube-api-server.key"
+    size: "{{ key_size }}"
+    type: "{{ key_type }}"
+
+- name: Generate a certificate signing request with subject information
+  community.crypto.openssl_csr:
+    path: "{{ cert_dir }}/kube-api-server.csr"
+    privatekey_path: "{{ cert_dir }}/kube-api-server.key"
+    basic_constraints: "CA:FALSE"
+    extended_key_usage:
+      - clientAuth
+      - serverAuth
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+    common_name: "kubernetes"
+    country_name: "{{ country_name }}"
+    state_or_province_name: "{{ state_or_province_name }}"
+    locality_name: "{{ locality_name }}"
+    subject_alt_name: "IP:127.0.0.1,IP:10.32.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster,DNS:kubernetes.svc.cluster.local,DNS:k8s-master.local,DNS:api-server.kubernetes.local"
+    create_subject_key_identifier: yes
+
+- name: Generate a certificate
+  community.crypto.x509_certificate:
+    path: "{{ cert_dir }}/kube-api-server.crt"
+    privatekey_path: "{{ cert_dir }}/kube-api-server.key"
+    csr_path: "{{ cert_dir }}/kube-api-server.csr"
+    ownca_path: "{{ cert_dir }}/ca.crt"
+    ownca_privatekey_path: "{{ cert_dir }}/ca.key"
+    provider: ownca
+
+- name: Copy the private key to local certificate directory
+  ansible.builtin.fetch:
+    src: "{{ cert_dir }}/kube-api-server.key"
+    dest: "{{ local_cert_dir }}/kube-api-server.key"
+    flat: true
+
+- name: Copy the self signed certificate to local certificate directory
+  ansible.builtin.fetch:
+    src: "{{ cert_dir }}/kube-api-server.crt"
+    dest: "{{ local_cert_dir }}/kube-api-server.crt"
+    flat: true

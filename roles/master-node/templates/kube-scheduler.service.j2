@@ -1,10 +1,10 @@
-[Unit]
+Unit]
 Description=Kubernetes Scheduler
 Documentation=https://github.com/kubernetes/kubernetes
 
 [Service]
 ExecStart=/usr/local/bin/kube-scheduler \
-  --config=/var/lib/kubernetes/kube-scheduler.yaml \
+  --config={{ kubernetes_dir }}/kube-scheduler.yaml \
   --v=2
 Restart=on-failure
 RestartSec=5

@@ -1,0 +1,76 @@
+---
+
+- name: Create containerd config directory
+  ansible.builtin.file:
+    path: "{{ containerd_config_dir }}"
+    state: directory
+  become: yes
+
+- name: Is containerd installed
+  ansible.builtin.stat:
+    path: "{{ binary_extract_dir }}/containerd-{{ containerd_version }}"
+  register: containerd_dir
+
+- block:
+
+  - name: Create containerd directory
+    ansible.builtin.file:
+      path: "{{ binary_extract_dir }}/containerd-{{ containerd_version }}"
+      state: directory
+    become: yes
+
+  - name: Extract contaiberd
+    ansible.builtin.unarchive:
+      src: https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz
+      dest: "{{ binary_extract_dir }}/containerd-{{ containerd_version }}"
+      remote_src: yes
+    become: yes
+
+  - name: Find all files in containerd
+    find:
+      paths: "{{ binary_extract_dir }}/containerd-{{ containerd_version }}/bin"
+    register: find
+
+  - name: Create symlinks to /usr/local/bin
+    ansible.builtin.file:
+      src: "{{ binary_extract_dir }}/containerd-{{ containerd_version }}/bin/{{ item.path | basename }}"
+      dest: "/bin/{{ item.path | basename }}"
+      state: link
+    with_items:
+      - "{{ find.files }}"
+    become: yes
+
+  when:
+    - not containerd_dir.stat.exists
+
+- name: Copy file containerd config
+  ansible.builtin.template:
+    src: containerd_config.toml.j2
+    dest: "{{ containerd_config_dir }}/config.toml"
+  become: yes
+
+- name: Install service containerd
+  ansible.builtin.template:
+    src: containerd.service.j2
+    dest: /etc/systemd/system/containerd.service
+  notify:
+    - reload systemd
+  become: yes
+
+- name: Enable and start containerd
+  ansible.builtin.systemd:
+    name: containerd
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Check started service
+  ansible.builtin.service:
+    name: containerd
+    state: started
+  register: containerd_service_status
+
+- name: Terminate playbook if service is not running
+  ansible.builtin.fail:
+    msg: "The containerd service is not running. Playbook has stoped."
+  when: containerd_service_status.state != 'started'

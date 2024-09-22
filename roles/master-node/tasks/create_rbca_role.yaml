@@ -1,0 +1,13 @@
+---
+
+- name: Copy role configuration
+  ansible.builtin.template:
+    src: kube-apiserver-to-kubelet.yaml.j2
+    dest: "{{ kubernetes_dir }}/kube-apiserver-to-kubelet.yaml"
+    mode: '0644'
+
+- name: Ganerate role 
+  ansible.builtin.command: >
+    kubectl apply -f {{ kubernetes_dir }}/kube-apiserver-to-kubelet.yaml 
+    --kubeconfig {{ kubeconfig_dir }}/admin.kubeconfig
+

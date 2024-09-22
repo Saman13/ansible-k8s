@@ -1,82 +1,54 @@
 ---
 
-- name: Generate private key for component
-  community.crypto.openssl_privatekey:
-    path: "{{ kubernetes_dir }}/kube-api-server.key"
-    size: "{{ key_size }}"
-    type: "{{ key_type }}"
-
-- name: Generate a certificate signing request with subject information
-  community.crypto.openssl_csr:
-    path: "{{ kubernetes_dir }}/kube-api-server.csr"
-    privatekey_path: "{{ kubernetes_dir }}/kube-api-server.key"
-    basic_constraints: "CA:FALSE"
-    extended_key_usage:
-      - clientAuth
-      - serverAuth
-    key_usage:
-      - digitalSignature
-      - keyEncipherment
-    key_usage_critical: true
-    country_name: "{{ country }}"
-    common_name: "kubernetes"
-    state_or_province_name: "Russia"
-    locality_name: "Saint-Petersburg"
-    subject_alt_name: "IP:127.0.0.1,IP:10.32.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster,DNS:kubernetes.svc.cluster.local,DNS:k8s-master.local,DNS:api-server.kubernetes.local"
-    create_subject_key_identifier: yes
-
-- name: Generate a certificate
-  community.crypto.x509_certificate:
-    path: "{{ kubernetes_dir }}/kube-api-server.crt"
-    csr_path: "{{ kubernetes_dir }}/kube-api-server.csr"
-    ownca_path: "{{ kubernetes_dir }}/ca.crt"
-    ownca_privatekey_path: "{{ kubernetes_dir }}/ca.key"
-    provider: ownca
-
-
 - name: Is kube-apiserver installed
   ansible.builtin.stat:
-    path: "{{ kube_apiserver_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}"
+    path: "{{ binary_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}"
   register: kube_apiserver_dir
 
 - block:
 
   - name: Create kube-apiserver directory
     ansible.builtin.file:
-      path: "{{ kube_apiserver_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}"
+      path: "{{ binary_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}"
       state: directory
-    become: yes
 
   - name: Extract kube-apiserver
     ansible.builtin.get_url:
       url: https://dl.k8s.io/v{{ kube_apiserver_version }}/bin/linux/amd64/kube-apiserver
-      dest: "{{ kube_apiserver_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}"
+      dest: "{{ binary_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}"
       mode: u+x
-    become: yes
 
   - name: Create symlinks to /usr/local/bin
     ansible.builtin.file:
-      src: "{{ kube_apiserver_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}/kube-apiserver"
+      src: "{{ binary_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}/kube-apiserver"
       path: "/usr/local/bin/kube-apiserver"
       state: link
-    become: yes
-
-  - name: Install service kube-apiserver
-    ansible.builtin.template:
-      src: kube-apiserver.service.j2
-      dest: /etc/systemd/system/kube-apiserver.service
-      mode: 0644
-    notify:
-      - reload systemd
-    become: yes
-
-  - name: Enable and start kube-apiserver
-    ansible.builtin.systemd:
-      name: kube-apiserver
-      state: started
-      enabled: yes
-    become: yes
 
   when:
     - not kube_apiserver_dir.stat.exists
 
+
+- name: Install service kube-apiserver
+  ansible.builtin.template:
+    src: kube-apiserver.service.j2
+    dest: /etc/systemd/system/kube-apiserver.service
+    mode: 0644
+  notify:
+    - reload systemd
+
+- name: Enable and start kube-apiserver
+  ansible.builtin.systemd:
+    name: kube-apiserver
+    state: started
+    enabled: yes
+
+- name: Check started service
+  ansible.builtin.service:
+    name: kube-apiserver
+    state: started
+  register: kube_apiserver_service_status
+
+- name: Terminate playbook if service is not running
+  ansible.builtin.fail:
+    msg: "The kube-apiserver service is not running. Playbook has stoped."
+  when: kube_apiserver_service_status.state != 'started'

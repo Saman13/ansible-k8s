@@ -1,0 +1,58 @@
+---
+
+- name: Generate private key for workers nodes.
+  community.crypto.openssl_privatekey:
+    path: "{{ cert_dir }}/{{ item }}.key"
+    size: "{{ key_size }}"
+    type: "{{ key_type }}"
+  with_items:
+    - "{{ groups.worker }}"
+
+- name: Generate a certificate signing request with subject information
+  community.crypto.openssl_csr:
+    path: "{{ cert_dir }}/{{ item }}.csr"
+    privatekey_path: "{{ cert_dir }}/{{ item }}.key"
+    basic_constraints: "CA:FALSE"
+    extended_key_usage:
+      - clientAuth
+      - serverAuth
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+    common_name: "system:node:{{ item }}"
+    organization_name: "system:nodes"
+    country_name: "{{ country_name }}"
+    state_or_province_name: "{{ state_or_province_name }}"
+    locality_name: "{{ locality_name }}"
+    subject_alt_name: "DNS:{{ item }},IP:127.0.0.1"
+    create_subject_key_identifier: yes
+  with_items:
+    - "{{ groups.worker }}"
+
+- name: Generate a certificate
+  community.crypto.x509_certificate:
+    path: "{{ cert_dir }}/{{ item }}.crt"
+    privatekey_path: "{{ cert_dir }}/{{ item }}.key"
+    csr_path: "{{ cert_dir }}/{{ item }}.csr"
+    ownca_path: "{{ cert_dir }}/ca.crt"
+    ownca_privatekey_path: "{{ cert_dir }}/ca.key"
+    provider: ownca
+  with_items:
+    - "{{ groups.worker }}"
+
+- name: Copy the private key components to local certificate directory
+  ansible.builtin.fetch:
+    src: "{{ cert_dir }}/{{ item }}.key"
+    dest: "{{ local_cert_dir }}/{{ item }}.key"
+    flat: true
+  with_items:
+    - "{{ groups.worker }}"
+
+- name: Copy the certificates components to local certificate directory
+  ansible.builtin.fetch:
+    src: "{{ cert_dir }}/{{ item }}.crt"
+    dest: "{{ local_cert_dir }}/{{ item }}.crt"
+    flat: true
+  with_items:
+    - "{{ groups.worker }}"

@@ -1,0 +1,34 @@
+---
+
+- name: Is crictl installed
+  ansible.builtin.stat:
+    path: "{{ binary_extract_dir }}/crictl-{{ crictl_version }}"
+  register: crictl_dir
+
+- block:
+
+  - name: Create crictl directory
+    ansible.builtin.file:
+      path: "{{ binary_extract_dir }}/crictl-{{ crictl_version }}"
+      state: directory
+    become: yes
+
+  - name: Extract crictl
+    ansible.builtin.unarchive:
+      src: https://github.com/kubernetes-sigs/cri-tools/releases/download/v{{ crictl_version }}/crictl-v{{ crictl_version }}-linux-amd64.tar.gz
+      dest: "{{ binary_extract_dir }}/crictl-{{ crictl_version }}"
+      remote_src: yes
+    become: yes
+
+  - name: Create symlinks to /usr/local/bin
+    ansible.builtin.file:
+      src: "{{ binary_extract_dir }}/crictl-{{ crictl_version }}/crictl"
+      path: "{{ binary_dir }}/crictl"
+      state: link
+    become: yes
+
+  when:
+    - not crictl_dir.stat.exists
+
+
+

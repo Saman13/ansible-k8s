@@ -7,19 +7,20 @@
     file: setup_hosts.yaml
 
 - ansible.builtin.include_tasks:
-    file: install_encryption_config.yaml
+    file: install_certificates.yaml
 
 - ansible.builtin.include_tasks:
-    file: install_certificates.yaml
+    file: install_encryption_config.yaml
 
 - ansible.builtin.include_tasks:
     file: install_kubectl.yaml
 
 - ansible.builtin.include_tasks:
-    file: generate_kubeconfig.yaml
+    file: generate_admin_kubeconfig.yaml
 
 - ansible.builtin.include_tasks:
     file: install_etcd.yaml
+  tags: etcd
 
 - ansible.builtin.include_tasks:
     file: install_kube_scheduler.yaml
@@ -29,3 +30,6 @@
 
 - ansible.builtin.include_tasks:
     file: install_kube_controller_manager.yaml
+
+- ansible.builtin.include_tasks:
+    file: create_rbca_role.yaml

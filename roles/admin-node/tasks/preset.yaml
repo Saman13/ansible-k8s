@@ -4,6 +4,14 @@
   ansible.builtin.package:
     name:
       - python3-cryptography
+      - curl
     state: present
     update_cache: yes
   become: yes
+
+- name: create sertificate directory
+  ansible.builtin.file:
+    path: "{{ cert_dir }}"
+    state: directory
+    mode: "0755"
+

@@ -12,7 +12,9 @@ all:
       hosts:
         k8s-worker0:
           ansible_host: 192.168.88.152
+          pod_subnet: 192.168.0.0/24
         k8s-worker1:
           ansible_host: 192.168.88.153
+          pod_subnet: 192.168.1.0/24
   vars:
     domain_name: local

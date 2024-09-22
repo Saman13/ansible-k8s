@@ -13,3 +13,10 @@
   roles:
     - master-node
   tags: master-node
+
+- name: worker-node
+  hosts:
+    - worker
+  roles:
+    - worker-node
+  tags: worker-node

@@ -1,47 +1,28 @@
 ---
 
-kubernetes_user: user
-
-k8s_components:
-  - service-accounts
-  - kube-api-server
-  - kube-controller-manager
-  - kube-scheduler
-  - kube-proxy
+user: user
+group: user
 
 kubernetes_dir: /var/lib/kubernetes
-#kubernetes_conf_dir: /etc/kubernetes/config
+kubeconfig_dir: /home/{{ user }}/.kube
 
-cert_dir: ~/cert
+cert_dir: /home/{{ user }}/cert
 local_cert_dir: ~/k8s/cert
-key_size: 4096
-key_type: RSA
-country: RU
-organization: kyn07c0
 
 install_mode: http # local
 local_binary_dir: ~/k8s/binary
 
+binary_extract_dir: /opt
+binary_dir: /usr/local/bin
+
 kubectl_version: 1.30.0
-kubectl_dir: /usr/local/bin
-
 kube_apiserver_version: 1.30.0
-kube_apiserver_extract_dir: /opt
-
 kube_controller_manager_version: 1.30.0
-kube_controller_manager_extract_dir: /opt
-
 kube_scheduler_version: 1.30.0
-kube_proxy_version: 1.30.0
-kubelet_version: 1.30.0
-crictl_version: 1.30.0
-runc_version: 1.1.12
-cni_plugins_version: 1.4.1
-containerd_version: 1.7.16
 
 etcd_version: 3.4.32
-etcd_extract_dir: /opt
 etcd_conf_dir: /etc/etcd
 etcd_data_dir: /var/lib/etcd
 
+kubelet_version: 1.30.0
 

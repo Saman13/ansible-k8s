@@ -3,6 +3,7 @@
 - name: Set hostname
   ansible.builtin.hostname:
     name: "{{ inventory_hostname }}"
+  become: yes
 
 - name: Fix /etc/hosts removing the old hostname
   lineinfile:
@@ -10,6 +11,7 @@
     regexp: "^127.0.1.1"
     line: "127.0.1.1\t{{ inventory_hostname }} {{ inventory_hostname }}.{{ domain_name }}"
     state: present
+  become: yes
 
 - name: Build hosts file
   lineinfile:
@@ -19,3 +21,4 @@
     state: present
   when: hostvars[item].ansible_host is defined
   with_items: "{{ groups.all }}"
+  become: yes
