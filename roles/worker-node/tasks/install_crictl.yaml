@@ -29,6 +29,3 @@
 
   when:
     - not crictl_dir.stat.exists
-
-
-

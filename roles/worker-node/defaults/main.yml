@@ -32,11 +32,3 @@ cni_plugins_dir: /opt/cni/bin
 
 containerd_version: 1.7.16
 containerd_config_dir: /etc/containerd
-
-
-
-
-
-
-
-

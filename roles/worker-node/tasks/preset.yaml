@@ -34,8 +34,3 @@
     regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
     replace: '# \1'
   become: yes
-
-- name: Generate numbers for subnet
-  set_fact:
-    server_index: "{{ ansible_play_batch.index(inventory_hostname) }}"
-

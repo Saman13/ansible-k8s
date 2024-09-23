@@ -33,3 +33,7 @@
 
 - ansible.builtin.include_tasks:
     file: create_rbca_role.yaml
+
+- ansible.builtin.include_tasks:
+    file: add_pod_route.yaml
+  tags: pod_route

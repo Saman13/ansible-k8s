@@ -10,4 +10,3 @@
   ansible.builtin.command: >
     kubectl apply -f {{ kubernetes_dir }}/kube-apiserver-to-kubelet.yaml 
     --kubeconfig {{ kubeconfig_dir }}/admin.kubeconfig
-

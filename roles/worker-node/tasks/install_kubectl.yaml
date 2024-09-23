@@ -27,9 +27,3 @@
 
   when:
     - not kubectl_install_dir.stat.exists
-
-
-
-
-
-

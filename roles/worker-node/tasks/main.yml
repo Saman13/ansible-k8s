@@ -29,3 +29,6 @@
 
 - ansible.builtin.include_tasks:
     file: install_kubelet.yaml
+
+- ansible.builtin.include_tasks:
+    file: add_pod_route.yaml
