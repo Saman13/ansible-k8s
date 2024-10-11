@@ -4,15 +4,9 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    mode: 0755
-    owner: "{{ user }}"
-    group: "{{ group }}"
   with_items:
     - "{{ kubelet_config_dir }}"
-    - "{{ kubelet_network_config_dir }}"
     - "{{ kubelet_kubeconfig_dir }}"
-  become: yes
-
 
 - name: Is kubelet installed
   ansible.builtin.stat:
@@ -25,40 +19,36 @@
     ansible.builtin.file:
       path: "{{ binary_extract_dir }}/kubelet-{{ kubelet_version }}"
       state: directory
-    become: yes
 
-  - name: Extract kubelet
+  - name: Download kubelet from network
     ansible.builtin.get_url:
       url: https://dl.k8s.io/v{{ kubelet_version }}/bin/linux/amd64/kubelet
       dest: "{{ binary_extract_dir }}/kubelet-{{ kubelet_version }}"
-      mode: u+x
-    become: yes
+    when:
+      - install_mode == 'network'
+
+  - name: Download kubelet from local dir
+    ansible.builtin.copy:
+      src: "{{ local_binary_dir }}/kubelet"
+      dest: "{{ binary_extract_dir }}/kubelet-{{ kubectl_version }}"
+    when:
+      - install_mode == 'local'
 
   - name: Create symlinks to /usr/local/bin
     ansible.builtin.file:
       src: "{{ binary_extract_dir }}/kubelet-{{ kubelet_version }}/kubelet"
       path: "{{ binary_dir }}/kubelet"
       state: link
-    become: yes
+      mode: u+x
 
   when:
     - not kubelet_dir.stat.exists
 
-- name: copy bridge config
-  ansible.builtin.template:
-    src: bridge.conf.j2 
-    dest: "{{ kubelet_network_config_dir }}/bridge.conf"
-
-- name: copy loopback config
-  ansible.builtin.template:
-    src: loopback.conf.j2 
-    dest: "{{ kubelet_network_config_dir }}/loopback.conf"
 
 - name: Copy file kubelet config
   ansible.builtin.template:
     src: kubelet-config.yaml.j2
     dest: "{{ kubelet_config_dir }}/kubelet-config.yaml"
-  become: yes
 
 - name: Ganerate config for worker node  (set cluster)
   ansible.builtin.command: >
@@ -67,7 +57,6 @@
     --embed-certs=true
     --server=https://k8s-master.{{ domain_name }}:6443
     --kubeconfig={{ kubelet_kubeconfig_dir }}/kubeconfig
-  become: yes
 
 - name: Ganerate config for worker node (set credentials)
   ansible.builtin.command: >
@@ -76,7 +65,6 @@
     --client-key={{ cert_dir }}/{{ inventory_hostname }}.key
     --embed-certs=true
     --kubeconfig={{ kubelet_kubeconfig_dir }}/kubeconfig
-  become: yes
 
 - name: Ganerate config for worker node (set context)
   ansible.builtin.command: >
@@ -84,15 +72,11 @@
     --cluster=k8s
     --user=system:node:{{ inventory_hostname }}
     --kubeconfig={{ kubelet_kubeconfig_dir }}/kubeconfig
-  become: yes
 
 - name: Set default context for services config
   ansible.builtin.command: >
     kubectl config use-context default
     --kubeconfig={{ kubelet_kubeconfig_dir }}/kubeconfig
-  become: yes
-
-
 
 - name: Install service kubelet
   ansible.builtin.template:
@@ -100,14 +84,12 @@
     dest: /etc/systemd/system/kubelet.service
   notify:
     - reload systemd
-  become: yes
 
 - name: Enable and start kubelet
   ansible.builtin.systemd:
     name: kubelet
     state: started
     enabled: yes
-  become: yes
 
 - name: Check started service
   ansible.builtin.service:

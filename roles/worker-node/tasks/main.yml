@@ -16,7 +16,10 @@
     file: install_crictl.yaml
 
 - ansible.builtin.include_tasks:
-    file: install_cni_plugins.yaml
+    file: install_cni.yaml
+
+- ansible.builtin.include_tasks:
+    file: add_pod_route.yaml
 
 - ansible.builtin.include_tasks:
     file: install_runc.yaml
@@ -29,6 +32,3 @@
 
 - ansible.builtin.include_tasks:
     file: install_kubelet.yaml
-
-- ansible.builtin.include_tasks:
-    file: add_pod_route.yaml

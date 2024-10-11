@@ -11,21 +11,28 @@
     ansible.builtin.file:
       path: "{{ binary_extract_dir }}/crictl-{{ crictl_version }}"
       state: directory
-    become: yes
 
-  - name: Extract crictl
+  - name: Download crictl from network
     ansible.builtin.unarchive:
       src: https://github.com/kubernetes-sigs/cri-tools/releases/download/v{{ crictl_version }}/crictl-v{{ crictl_version }}-linux-amd64.tar.gz
       dest: "{{ binary_extract_dir }}/crictl-{{ crictl_version }}"
       remote_src: yes
-    become: yes
+    when:
+      - install_mode == 'network'
+
+  - name: Download kubectl from local dir
+    ansible.builtin.unarchive:
+      src: "{{ local_binary_dir }}/crictl-v{{ crictl_version }}-linux-amd64.tar.gz"
+      dest: "{{ binary_extract_dir }}/crictl-{{ crictl_version }}"
+    when:
+      - install_mode == 'local'
 
   - name: Create symlinks to /usr/local/bin
     ansible.builtin.file:
       src: "{{ binary_extract_dir }}/crictl-{{ crictl_version }}/crictl"
       path: "{{ binary_dir }}/crictl"
       state: link
-    become: yes
+      mode: u+x
 
   when:
     - not crictl_dir.stat.exists

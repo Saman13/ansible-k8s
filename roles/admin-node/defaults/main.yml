@@ -1,8 +1,5 @@
 ---
 
-user: user
-group: user
-
 k8s_components:
   - service-accounts
   - kube-api-server
@@ -12,12 +9,11 @@ k8s_components:
 
 kubernetes_dir: /var/lib/kubernetes
 
-cert_dir: /home/{{ user }}/cert
+cert_dir: /root/cert
 local_cert_dir: ~/k8s/cert
 key_size: 4096
 key_type: RSA
 
- 
 country_name: RU
 state_or_province_name: RUSSIA
 locality_name: Saint-Petersburg
@@ -25,7 +21,7 @@ locality_name: Saint-Petersburg
 config_dir: /home/{{ user }}/.kube
 local_conf_dir: ~/k8s/conf
 
-install_mode: http # local
+install_mode: local # network 
 local_binary_dir: ~/k8s/binary
 
 kubectl_version: 1.30.0

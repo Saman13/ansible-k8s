@@ -15,7 +15,7 @@ clusterDNS:
 cgroupDriver: systemd
 containerRuntimeEndpoint: "unix:///var/run/containerd/containerd.sock"
 podCIDR: "{{ hostvars[inventory_hostname]['pod_subnet'] }}"
-resolvConf: "/etc/resolv.conf"
+resolvConf: "{{ resolv_conf }}"
 runtimeRequestTimeout: "15m"
 tlsCertFile: "{{ cert_dir }}/{{ inventory_hostname }}.crt"
 tlsPrivateKeyFile: "{{ cert_dir }}/{{ inventory_hostname }}.key"

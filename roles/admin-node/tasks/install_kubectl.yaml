@@ -12,24 +12,39 @@
       url: https://dl.k8s.io/v{{ kubectl_version }}/bin/linux/amd64/kubectl
       dest: "{{ kubectl_dir }}/kubectl"
       mode: u+x
-      owner: "{{ user }}"
-      group: "{{ group }}"
     when:
-      - install_mode == 'http'
-    become: yes
+      - install_mode == 'network'
 
   - name: Install kubectl from local dir
     ansible.builtin.copy:
       src: "{{ local_binary_dir }}/kubectl"
       dest: "/usr/local/bin/kubectl"
       mode: u+x
-      owner: "{{ user }}"
-      group: "{{ group }}"
     when:
       - install_mode == 'local'
-    become: yes
 
   when:
     - not kubectl_install_dir.stat.exists
 
+- name: Ganerate kubeconfig admin (set cluster)
+  ansible.builtin.command: >
+    kubectl config set-cluster k8s
+    --certificate-authority={{ cert_dir }}/ca.crt
+    --embed-certs=true
+    --server=https://k8s-master.local:6443
 
+- name: Ganerate kubeconfig admin (set credentials)
+  ansible.builtin.command: >
+    kubectl config set-credentials admin
+    --client-certificate={{ cert_dir }}/admin.crt
+    --client-key={{ cert_dir }}/admin.key
+
+- name: Ganerate kubeconfig admin (set context)
+  ansible.builtin.command: >
+    kubectl config set-context k8s
+    --cluster=k8s
+    --user=admin
+
+- name: Choosing the context for use
+  ansible.builtin.command: >
+    kubectl config use-context k8s

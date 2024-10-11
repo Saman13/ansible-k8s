@@ -32,13 +32,3 @@
 
 - ansible.builtin.include_tasks:
     file: install_kubectl.yaml
-
-- ansible.builtin.include_tasks:
-    file: generate_kubeconfig_admin.yaml
-
-
-
-
-
-
-

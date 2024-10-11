@@ -11,28 +11,31 @@
     ansible.builtin.file:
       path: "{{ binary_extract_dir }}/runc-{{ runc_version }}"
       state: directory
-    become: yes
 
-  - name: Extract runc
+  - name: Download runc from network
     ansible.builtin.get_url:
       url: https://github.com/opencontainers/runc/releases/download/v{{ runc_version }}/runc.amd64
       dest: "{{ binary_extract_dir }}/runc-{{ runc_version }}"
-      mode: "0755"
-      owner: "{{ user }}"
-      group: "{{ group }}"
-    become: yes
+    when:
+      - install_mode == 'network'
+
+  - name: Download runc from local dir
+    ansible.builtin.copy:
+      src: "{{ local_binary_dir }}/runc.amd64"
+      dest: "{{ binary_extract_dir }}/runc-{{ runc_version }}"
+    when:
+      - install_mode == 'local'
 
   - name: Remane runc.amd64 to runc
     ansible.builtin.command: >
       mv {{ binary_extract_dir }}/runc-{{ runc_version }}/runc.amd64 {{ binary_extract_dir }}/runc-{{ runc_version }}/runc
-    become: yes
 
   - name: Create symlinks to /usr/local/bin
     ansible.builtin.file:
       src: "{{ binary_extract_dir }}/runc-{{ runc_version }}/runc"
       path: "{{ binary_dir }}/runc"
       state: link
-    become: yes
+      mode: u+x
 
   when:
     - not runc_dir.stat.exists

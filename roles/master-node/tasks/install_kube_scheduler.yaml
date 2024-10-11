@@ -12,21 +12,29 @@
       path: "{{ binary_extract_dir }}/kube-scheduler-{{ kube_scheduler_version }}"
       state: directory
 
-  - name: Extract scheduler
+  - name: Download kube-scheduler from url
     ansible.builtin.get_url:
       url: https://dl.k8s.io/v{{ kube_scheduler_version }}/bin/linux/amd64/kube-scheduler
       dest: "{{ binary_extract_dir }}/kube-scheduler-{{ kube_scheduler_version }}"
-      mode: u+x
+    when:
+      - install_mode == 'network'
+
+  - name: Instail etcd from local dir
+    ansible.builtin.copy:
+      src: "{{ local_binary_dir }}/kube-scheduler"
+      dest: "{{ binary_extract_dir }}/kube-scheduler-{{ kube_scheduler_version }}"
+    when:
+      - install_mode == 'local'
 
   - name: Create symlinks to /usr/local/bin
     ansible.builtin.file:
       src: "{{ binary_extract_dir }}/kube-scheduler-{{ kube_scheduler_version }}/kube-scheduler"
       path: "{{ binary_dir }}/kube-scheduler"
       state: link
+      mode: a+x
 
   when:
     - not kube_scheduler_dir.stat.exists
-
 
 - name: Copy file kube-scheduler config
   ansible.builtin.template:

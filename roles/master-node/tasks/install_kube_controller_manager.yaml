@@ -12,21 +12,29 @@
       path: "{{ binary_extract_dir }}/kube-controller-manager-{{ kube_controller_manager_version }}"
       state: directory
 
-  - name: Extract controller-manager
+  - name: Download controller-manager from url
     ansible.builtin.get_url:
       url: https://dl.k8s.io/v{{ kube_controller_manager_version }}/bin/linux/amd64/kube-controller-manager
       dest: "{{ binary_extract_dir }}/kube-controller-manager-{{ kube_controller_manager_version }}"
-      mode: u+x
+    when:
+      - install_mode == 'network'
+
+  - name: Download etcd from local dir
+    ansible.builtin.copy:
+      src: "{{ local_binary_dir }}/kube-controller-manager"
+      dest: "{{ binary_extract_dir }}/kube-controller-manager-{{ kube_controller_manager_version }}"
+    when:
+      - install_mode == 'local'
 
   - name: Create symlinks to /usr/local/bin
     ansible.builtin.file:
       src: "{{ binary_extract_dir }}/kube-controller-manager-{{ kube_controller_manager_version }}/kube-controller-manager"
       path: "{{ binary_dir }}/kube-controller-manager"
       state: link
+      mode: a+x
 
   when:
     - not kube_controller_manager_dir.stat.exists
-
 
 - name: Ganerate config for services (set cluster)
   ansible.builtin.command: >

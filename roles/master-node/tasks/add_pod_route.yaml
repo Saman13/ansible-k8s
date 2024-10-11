@@ -2,5 +2,5 @@
 
 - name: Add route
   ansible.builtin.command: >
-    ip route add {{ hostvars[item]['pod_subnet'] }} via {{ hostvars[item].ansible_host }}
+    ip route replace {{ hostvars[item]['pod_subnet'] }} via {{ hostvars[item].ansible_host }}
   with_items: "{{ groups['worker'] }}"

@@ -1,15 +1,12 @@
 ---
 
-user: user
-group: user
-
 kubernetes_dir: /var/lib/kubernetes
-kubeconfig_dir: /home/{{ user }}/.kube
+kubeconfig_dir: /root/.kube
 
-cert_dir: /home/{{ user }}/cert
+cert_dir: /root/cert
 local_cert_dir: ~/k8s/cert
 
-install_mode: http # local
+install_mode: local # network
 local_binary_dir: ~/k8s/binary
 
 binary_extract_dir: /opt

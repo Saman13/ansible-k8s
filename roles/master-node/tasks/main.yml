@@ -7,6 +7,9 @@
     file: setup_hosts.yaml
 
 - ansible.builtin.include_tasks:
+    file: add_pod_route.yaml
+
+- ansible.builtin.include_tasks:
     file: install_certificates.yaml
 
 - ansible.builtin.include_tasks:
@@ -20,7 +23,6 @@
 
 - ansible.builtin.include_tasks:
     file: install_etcd.yaml
-  tags: etcd
 
 - ansible.builtin.include_tasks:
     file: install_kube_scheduler.yaml
@@ -33,7 +35,3 @@
 
 - ansible.builtin.include_tasks:
     file: create_rbca_role.yaml
-
-- ansible.builtin.include_tasks:
-    file: add_pod_route.yaml
-  tags: pod_route

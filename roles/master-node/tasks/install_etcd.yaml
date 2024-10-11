@@ -28,24 +28,33 @@
 
 - block:
 
-  - name: Extract etcd
+  - name: Download etcd from url
     ansible.builtin.unarchive:
       src: https://github.com/etcd-io/etcd/releases/download/v{{ etcd_version }}/etcd-v{{ etcd_version }}-linux-amd64.tar.gz
-      dest: /opt
+      dest: "{{ binary_extract_dir }}"
       remote_src: yes
+    when:
+      - install_mode == 'network'
+
+  - name: Download etcd from local dir
+    ansible.builtin.unarchive:
+      src: "{{ local_binary_dir }}/etcd-v{{ etcd_version }}-linux-amd64.tar.gz"
+      dest: "{{ binary_extract_dir }}"
+    when:
+      - install_mode == 'local'
 
   - name: Create symlinks to /usr/local/bin
     ansible.builtin.file:
       src: "{{ binary_extract_dir }}/etcd-v{{ etcd_version }}-linux-amd64/{{ item }}"
       path: "{{ binary_dir }}/{{ item | basename }}"
       state: link
+      mode: a+x
     with_items:
       - etcd
       - etcdctl
 
   when:
     - not etcd_dir.stat.exists
-
 
 - name: Install service etcd
   ansible.builtin.template:

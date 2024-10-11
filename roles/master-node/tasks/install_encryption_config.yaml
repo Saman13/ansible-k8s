@@ -8,4 +8,3 @@
   ansible.builtin.template:
     src: encryption-config.yaml.j2
     dest: "{{ kubernetes_dir }}/encryption-config.yaml"
-  become: yes

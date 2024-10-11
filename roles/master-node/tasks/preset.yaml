@@ -10,7 +10,7 @@
     path: "{{ kubernetes_dir }}"
     state: directory
 
-- name: create sertificate directory
+- name: create kubeconfig directory
   ansible.builtin.file:
     path: "{{ kubeconfig_dir }}"
     state: directory

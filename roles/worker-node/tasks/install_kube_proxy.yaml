@@ -4,10 +4,6 @@
   ansible.builtin.file:
     path: "{{ kube_proxy_config_dir }}"
     state: directory
-    mode: '0700'
-    owner: '{{ user }}'
-    group: '{{ group }}'
-  become: yes
 
 - name: Is kube-proxy installed
   ansible.builtin.stat:
@@ -20,21 +16,27 @@
     ansible.builtin.file:
       path: "{{ binary_extract_dir }}/kube-proxy-{{ kube_proxy_version }}"
       state: directory
-    become: yes
 
-  - name: Extract kube-proxy
+  - name: Download kube-proxy from network
     ansible.builtin.get_url:
       url: https://dl.k8s.io/v{{ kube_proxy_version }}/bin/linux/amd64/kube-proxy
       dest: "{{ binary_extract_dir }}/kube-proxy-{{ kube_proxy_version }}"
-      mode: u+x
-    become: yes
+    when:
+      - install_mode == 'network'
+
+  - name: Download kubectl from local dir
+    ansible.builtin.copy:
+      src: "{{ local_binary_dir }}/kube-proxy"
+      dest: "{{ binary_extract_dir }}/kube-proxy-{{ kube_proxy_version }}"
+    when:
+      - install_mode == 'local'
 
   - name: Create symlinks to /usr/local/bin
     ansible.builtin.file:
       src: "{{ binary_extract_dir }}/kube-proxy-{{ kube_proxy_version }}/kube-proxy"
       path: "{{ binary_dir }}/kube-proxy"
       state: link
-    become: yes
+      mode: u+x
 
   when:
     - not kube_proxy_dir.stat.exists
@@ -44,7 +46,6 @@
   ansible.builtin.template:
     src: kube_proxy_config.yaml.j2
     dest: "{{ kube_proxy_config_dir }}/kube-proxy-config.yaml"
-  become: yes
 
 - name: Ganerate config for services (set cluster)
   ansible.builtin.command: >
@@ -53,7 +54,6 @@
     --embed-certs=true
     --server=https://k8s-master.{{ domain_name }}:6443
     --kubeconfig={{ kube_proxy_config_dir }}/kube-proxy.kubeconfig
-  become: yes
 
 - name: Ganerate config for services (set credentials)
   ansible.builtin.command: >
@@ -62,7 +62,6 @@
     --client-key={{ cert_dir }}/kube-proxy.key
     --embed-certs=true
     --kubeconfig={{ kube_proxy_config_dir }}/kube-proxy.kubeconfig
-  become: yes
 
 - name: Ganerate config for services (set context)
   ansible.builtin.command: >
@@ -70,13 +69,11 @@
     --cluster=k8s
     --user=system:kube-proxy
     --kubeconfig={{ kube_proxy_config_dir }}/kube-proxy.kubeconfig
-  become: yes
 
 - name: Set default context for services config
   ansible.builtin.command: >
     kubectl config use-context default
     --kubeconfig={{ kube_proxy_config_dir }}/kube-proxy.kubeconfig
-  become: yes
 
 - name: Install service kube-proxy
   ansible.builtin.template:
@@ -84,14 +81,12 @@
     dest: /etc/systemd/system/kube-proxy.service
   notify:
     - reload systemd
-  become: yes
 
 - name: Enable and start kube-proxy
   ansible.builtin.systemd:
     name: kube-proxy
     state: started
     enabled: yes
-  become: yes
 
 - name: Check started service
   ansible.builtin.service:

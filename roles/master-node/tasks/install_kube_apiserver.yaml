@@ -12,17 +12,26 @@
       path: "{{ binary_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}"
       state: directory
 
-  - name: Extract kube-apiserver
+  - name: Install kube-apiserver from url
     ansible.builtin.get_url:
       url: https://dl.k8s.io/v{{ kube_apiserver_version }}/bin/linux/amd64/kube-apiserver
       dest: "{{ binary_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}"
-      mode: u+x
+    when:
+      - install_mode == 'network'
+
+  - name: Instail kube-apiserver from local dir
+    ansible.builtin.copy:
+      src: "{{ local_binary_dir }}/kube-apiserver"
+      dest: "{{ binary_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}"
+    when:
+      - install_mode == 'local'
 
   - name: Create symlinks to /usr/local/bin
     ansible.builtin.file:
       src: "{{ binary_extract_dir }}/kube-apiserver-{{ kube_apiserver_version }}/kube-apiserver"
       path: "/usr/local/bin/kube-apiserver"
       state: link
+      mode: a+x
 
   when:
     - not kube_apiserver_dir.stat.exists
