@@ -12,6 +12,10 @@ This node will also be used to create certificates for cluster nodes and compone
 
 
 ## Master node
+### API Server
+The API server is the central component of the cluster that exposes the Kubernetes API.
+End users and other cluster components interact with the cluster through the API server.
+Communication between the API server and other components in the cluster occurs over TLS to prevent unauthorized access to the cluster.
 ### etcd 
 etcd is a secure storage that stores all configuration and state data for a cluster. 
 This distributed key/value store ensures data consistency across the cluster, helping with recovery and managing its state.
