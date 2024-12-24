@@ -31,7 +31,3 @@ It analyzes the current cluster load and places modules on nodes that have the r
 
 
 ## Worker node
-
-
-
-
